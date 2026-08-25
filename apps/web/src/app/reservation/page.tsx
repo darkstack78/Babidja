@@ -122,7 +122,7 @@ export default function BookingSummary() {
           }
         }}
       >
-        <Input icon={User} defaultValue={displayName} placeholder="Nom complet" />
+        <Input icon={User} value={displayName || undefined} placeholder="Nom complet" readOnly={!!displayName} />
         <Input icon={Mail} type="email" placeholder="Adresse e-mail" defaultValue={user?.email || ''} />
         <Input icon={Phone} type="tel" placeholder="Téléphone" defaultValue={user?.phone || ''} />
         {submitError && <p className="text-sm text-red-600">{submitError}</p>}

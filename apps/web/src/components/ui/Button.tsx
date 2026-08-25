@@ -25,7 +25,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export default function Button({ variant = 'primary', size = 'md', href, className = '', children, ...props }: ButtonProps) {
-  const cls = `inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors cursor-pointer ${variants[variant]} ${sizes[size]} ${className}`
+  const cls = `inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all cursor-pointer active:scale-95 disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`
   if (href) {
     return (
       <Link href={href} className={cls}>

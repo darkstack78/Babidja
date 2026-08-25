@@ -8,6 +8,7 @@ export interface User {
   firstName: string;
   lastName: string;
   avatarUrl: string | null;
+  address?: string | null;
   walletBalance: number;
   referralCode: string;
   referredById: string | null;
@@ -16,4 +17,5 @@ export interface User {
   isActive: boolean;
   isEmailVerified: boolean;
   createdAt: string;
+  tenantId?: string;
 }

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Globe, ChevronDown, House, CalendarDays, BedDouble, Heart, User, Car } from 'lucide-react'
+import { Globe, ChevronDown, House, CalendarDays, BedDouble, User, Car } from 'lucide-react'
 import Logo from '../Logo'
 import Button from '../ui/Button'
 import { useAuthStore } from '../../store/useAuthStore'
@@ -19,7 +19,7 @@ export default function NavbarPublic() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white">
+      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Logo />
           <nav className="hidden items-center gap-7 lg:flex">
@@ -58,7 +58,7 @@ export default function NavbarPublic() {
       </header>
 
       {/* Navigation mobile (indicateur dynamique) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-end justify-around border-t border-gray-200 bg-white px-2 pb-2 pt-1.5 lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 flex items-end justify-around border-t border-gray-200 bg-white px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
         <MobileItem href="/" icon={House} label="Accueil" pathname={pathname} />
         <MobileItem href="/chambres" icon={BedDouble} label="Hôtel" pathname={pathname} />
         <MobileItem href="/voitures" icon={Car} label="Voitures" pathname={pathname} />

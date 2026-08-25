@@ -3,13 +3,21 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Menu, X } from 'lucide-react'
+import { Bell, Menu, X, type LucideIcon } from 'lucide-react'
 import Logo from '@/components/Logo'
 import Avatar from '@/components/Avatar'
 
-export function DashboardShell({ 
-  navItems, 
-  userTitle, 
+interface DashboardNavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  exact?: boolean;
+  iconColor?: string;
+}
+
+export function DashboardShell({
+  navItems,
+  userTitle,
   userName = 'Amadou Touré',
   sidebarBg = 'bg-white',
   sidebarText = 'text-gray-600',
@@ -17,7 +25,7 @@ export function DashboardShell({
   hoverClass = 'hover:bg-gray-50',
   children
 }: {
-  navItems: any[];
+  navItems: DashboardNavItem[];
   userTitle: string;
   userName?: string;
   sidebarBg?: string;
@@ -35,12 +43,26 @@ export function DashboardShell({
         <div className="flex items-center justify-between gap-4 px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-3">
             <button 
-              className="md:hidden text-gray-500 hover:text-gray-900"
+              className="md:hidden text-gray-500 hover:text-gray-900 shrink-0"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               <Menu className="size-6" />
             </button>
-            <Logo variant="pro" />
+            <div className="hidden md:block shrink-0">
+              <Logo variant="pro" />
+            </div>
+            {/* Breadcrumbs */}
+            {navItems.find(item => item.exact ? pathname === item.href : pathname.startsWith(item.href)) && (
+              <div className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-500 border-l border-gray-200 pl-4 ml-2">
+                <span className="truncate max-w-50">
+                  {navItems.find(item => item.exact ? pathname === item.href : pathname.startsWith(item.href))?.label}
+                </span>
+              </div>
+            )}
+            {/* Mobile Logo fallback */}
+            <div className="md:hidden flex-1 flex justify-center mr-6">
+               <Logo variant="pro" />
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <span className="hidden text-sm font-semibold text-primary md:block">

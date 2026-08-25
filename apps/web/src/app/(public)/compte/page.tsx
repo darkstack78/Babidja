@@ -1,6 +1,7 @@
 'use client';
 
-import { TreePalm, User, Mail, Phone, Wallet, LogOut } from 'lucide-react'
+import { TreePalm, User, Mail, Phone, Wallet, LogOut, CreditCard, MessageSquare, Bell } from 'lucide-react'
+import Link from 'next/link'
 import Avatar from '@/components/Avatar'
 import Button from '@/components/ui/Button'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -15,6 +16,9 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // Attend l'hydratation du store persistant (zustand) avant de rendre, pour
+    // éviter un flash de contenu non authentifié.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
@@ -73,14 +77,35 @@ export default function Dashboard() {
         </section>
 
         {/* Carte solde */}
-        <section className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-sm border border-gray-100">
-          <span className="grid size-14 place-items-center rounded-2xl bg-pastel">
-            <Wallet className="size-7 text-secondary" />
-          </span>
-          <p className="mt-3 text-sm text-gray-500 uppercase font-bold">Mon solde</p>
-          <p className="mt-1 text-3xl font-extrabold text-primary">{fcfa(balance)}</p>
-          <Button href="/compte/solde" className="mt-5 w-full">Recharger</Button>
-        </section>
+        <div className="flex flex-col gap-5">
+          <section className="flex flex-col items-center rounded-2xl bg-white p-6 text-center shadow-sm border border-gray-100">
+            <span className="grid size-14 place-items-center rounded-2xl bg-pastel">
+              <Wallet className="size-7 text-secondary" />
+            </span>
+            <p className="mt-3 text-sm text-gray-500 uppercase font-bold">Mon solde</p>
+            <p className="mt-1 text-3xl font-extrabold text-primary">{fcfa(balance)}</p>
+            <Button href="/compte/solde" className="mt-5 w-full">Recharger</Button>
+          </section>
+
+          {/* Navigation rapide (très utile sur mobile où la sidebar est cachée) */}
+          <section className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 md:hidden">
+            <p className="text-sm font-bold text-gray-700 mb-3 px-2">Raccourcis</p>
+            <div className="flex flex-col gap-1">
+              <Link href="/compte/paiement" className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50 transition-colors">
+                <span className="grid size-8 place-items-center rounded-lg bg-gray-100 text-gray-600"><CreditCard className="size-4" /></span>
+                <span className="text-sm font-medium">Moyens de paiement</span>
+              </Link>
+              <Link href="/compte/messagerie" className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50 transition-colors">
+                <span className="grid size-8 place-items-center rounded-lg bg-gray-100 text-gray-600"><MessageSquare className="size-4" /></span>
+                <span className="text-sm font-medium">Messagerie</span>
+              </Link>
+              <Link href="/compte/notifications" className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50 transition-colors">
+                <span className="grid size-8 place-items-center rounded-lg bg-gray-100 text-gray-600"><Bell className="size-4" /></span>
+                <span className="text-sm font-medium">Notifications</span>
+              </Link>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   )

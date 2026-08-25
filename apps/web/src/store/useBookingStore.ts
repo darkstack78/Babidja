@@ -39,12 +39,18 @@ interface BookingState {
   createBooking: (paymentType: PaymentType) => Promise<Booking | null>
 }
 
+// Dates initiales dynamiques : aujourd'hui et demain
+function todayStr() { return new Date().toISOString().split('T')[0] }
+function tomorrowStr() {
+  const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
+}
+
 export const useBookingStore = create<BookingState>()(
   persist(
     (set, get) => ({
   itemType: 'room',
-  arrival: '2026-10-12',
-  departure: '2026-10-15',
+  arrival: todayStr(),
+  departure: tomorrowStr(),
   guests: '2 Adultes',
   room: null,
   car: null,

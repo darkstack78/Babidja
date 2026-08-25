@@ -38,7 +38,7 @@ export default function BookingSidebar({ room }) {
     }
   }
 
-  const FormContent = () => (
+  const formContent = (
     <div className="flex flex-col gap-4 text-sm">
       <div className="flex flex-col border-b border-gray-100 pb-3">
         <label className="font-semibold mb-2 text-gray-900">Arrivée</label>
@@ -94,15 +94,12 @@ export default function BookingSidebar({ room }) {
     </div>
   )
 
-  const PriceDisplay = () => {
-    if (!durationValue || parseInt(durationValue) <= 0) return null
-    return (
-      <div className="my-4 rounded-xl bg-pastel/30 p-4">
-        <span className="text-sm text-gray-500 uppercase font-bold">Total pour {details.nights} nuit{details.nights > 1 ? 's' : ''}</span>
-        <p className="text-3xl font-extrabold text-primary">{fcfa(details.subtotal)}</p>
-      </div>
-    )
-  }
+  const priceDisplay = !durationValue || parseInt(durationValue) <= 0 ? null : (
+    <div className="my-4 rounded-xl bg-pastel/30 p-4">
+      <span className="text-sm text-gray-500 uppercase font-bold">Total pour {details.nights} nuit{details.nights > 1 ? 's' : ''}</span>
+      <p className="text-3xl font-extrabold text-primary">{fcfa(details.subtotal)}</p>
+    </div>
+  )
 
   return (
     <>
@@ -129,8 +126,8 @@ export default function BookingSidebar({ room }) {
               </button>
             </div>
             
-            <FormContent />
-            <PriceDisplay />
+            {formContent}
+            {priceDisplay}
             
             <Button 
               onClick={handleReserve} 
@@ -169,8 +166,8 @@ export default function BookingSidebar({ room }) {
             </button>
             <h3 className="mb-6 text-lg font-bold text-gray-900">Configurez votre séjour</h3>
             
-            <FormContent />
-            <PriceDisplay />
+            {formContent}
+            {priceDisplay}
 
             <Button 
               onClick={handleReserve} 

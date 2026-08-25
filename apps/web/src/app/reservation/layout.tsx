@@ -21,7 +21,7 @@ export default function ReservationLayout({ children }: { children: React.ReactN
           >
             <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
           </button>
-          <Logo baseline={false} />
+          <Logo />
           {isPayment ? (
             <div className="flex items-center gap-1.5 text-xs font-semibold text-secondary">
               <Lock className="size-3" /> Sécurisé

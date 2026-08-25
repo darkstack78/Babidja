@@ -41,6 +41,11 @@ export const useAuthStore = create<AuthState>()(
         set({ isDrawerOpen: false, onAuthSuccess: null }),
 
       setSession: ({ accessToken, refreshToken, user }) => {
+        // Nettoyer les données d'un éventuel utilisateur précédent avant d'ouvrir
+        // la nouvelle session — le favori de paiement et le panier de réservation
+        // sont liés à un compte spécifique et ne doivent jamais fuiter entre sessions.
+        localStorage.removeItem('babydja_favorite_payment_method');
+        localStorage.removeItem('booking-storage');
         set({ accessToken, refreshToken, user, isAuthenticated: true })
         const { onAuthSuccess } = get()
         if (onAuthSuccess) {
@@ -51,6 +56,9 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         import('@/lib/api/auth').then((api) => api.logout());
+        // Nettoyage complet : favori de paiement + booking store persisté
+        localStorage.removeItem('babydja_favorite_payment_method');
+        localStorage.removeItem('booking-storage');
         set({ isAuthenticated: false, accessToken: null, refreshToken: null, user: null });
       },
     }),

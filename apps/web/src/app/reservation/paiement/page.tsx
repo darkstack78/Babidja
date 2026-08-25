@@ -21,6 +21,7 @@ const METHOD_BY_CHOICE: Record<string, PaymentMethodCode> = {
 export default function BookingPayment() {
   const router = useRouter()
   const [selected, setSelected] = useState('mtn')
+  const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const choice = paymentChoices.find((c) => c.id === selected)
@@ -79,11 +80,18 @@ export default function BookingPayment() {
         <div className="relative mt-2">
           <input
             type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             placeholder={`+225 •••• (${choice?.sub ?? ''})`}
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-11 text-sm outline-none focus:border-secondary"
           />
           <Lock className="absolute right-4 top-1/2 size-4 -translate-y-1/2 text-secondary" />
         </div>
+        {phone && (
+          <p className="mt-2 text-xs text-gray-600 font-medium">
+            Le paiement sera initié vers le numéro : <span className="font-bold">{phone}</span>
+          </p>
+        )}
         <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
           <Lock className="size-3 text-secondary" /> Paiement 100% sécurisé
         </p>

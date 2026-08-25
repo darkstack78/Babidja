@@ -32,7 +32,7 @@ export default function AdminTransactions() {
               <th className="py-2 font-semibold">Client</th>
               <th className="py-2 font-semibold">Service réservé</th>
               <th className="py-2 font-semibold">Montant</th>
-              <th className="py-2 font-semibold">Date d'ajout</th>
+              <th className="py-2 font-semibold">Date d&apos;ajout</th>
               <th className="py-2 font-semibold">Méthode</th>
               <th className="py-2 font-semibold">Statut</th>
             </tr>

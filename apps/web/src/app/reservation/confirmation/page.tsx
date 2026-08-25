@@ -9,6 +9,38 @@ import { hotelConfig } from '@/data/mock'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useBookingStore } from '@/store/useBookingStore'
 
+/** Génère un reçu HTML dans un nouvel onglet et déclenche l'impression (→ PDF). */
+function downloadReceipt(params: {
+  bookingRef: string; title: string; location: string;
+  startStr: string; endStr: string; details: string;
+  total: number; deposit: number; userName: string;
+}) {
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+    <title>Reçu ${params.bookingRef}</title>
+    <style>body{font-family:sans-serif;max-width:600px;margin:40px auto;color:#111}
+    h1{color:#e97c2a}table{width:100%;border-collapse:collapse;margin-top:16px}
+    td{padding:8px 4px;border-bottom:1px solid #eee}td:last-child{text-align:right;font-weight:600}
+    .total{font-size:1.2em;color:#e97c2a}.footer{margin-top:32px;font-size:12px;color:#888}
+    @media print{button{display:none}}</style></head>
+  <body>
+    <h1>Babydja — Reçu de réservation</h1>
+    <p><strong>Référence :</strong> ${params.bookingRef}</p>
+    <p><strong>Client :</strong> ${params.userName}</p>
+    <table>
+      <tr><td>Établissement</td><td>${params.title}</td></tr>
+      <tr><td>Adresse</td><td>${params.location}</td></tr>
+      <tr><td>Dates</td><td>${params.startStr} – ${params.endStr}</td></tr>
+      <tr><td>Détails</td><td>${params.details}</td></tr>
+      <tr class="total"><td>Total</td><td>${fcfa(params.total)}</td></tr>
+      <tr><td>Acompte versé</td><td>${fcfa(params.deposit)}</td></tr>
+    </table>
+    <p class="footer">Merci pour votre confiance. Ce document tient lieu de reçu officiel.</p>
+    <button onclick="window.print()" style="margin-top:24px;padding:10px 24px;background:#e97c2a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Imprimer / Enregistrer en PDF</button>
+  </body></html>`
+  const w = window.open('', '_blank')
+  if (w) { w.document.write(html); w.document.close(); w.focus(); w.print(); }
+}
+
 export default function BookingConfirmation() {
   const router = useRouter()
   const { user } = useAuthStore()
@@ -77,7 +109,21 @@ export default function BookingConfirmation() {
       )}
 
       <div className="mt-5 flex flex-col gap-3">
-        <Button size="lg" className="w-full">
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() => downloadReceipt({
+            bookingRef: booking.bookingRef,
+            title,
+            location,
+            startStr,
+            endStr,
+            details,
+            total: Number(booking.totalAmount),
+            deposit: Number(booking.depositAmount),
+            userName: [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'Client Babydja',
+          })}
+        >
           Télécharger le reçu <Download className="size-4" />
         </Button>
         <Button href="/compte/reservations" variant="secondary" size="lg" className="w-full">

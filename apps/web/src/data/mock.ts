@@ -122,7 +122,16 @@ export const paymentChoices = [
   { id: 'visa', label: 'Carte bancaire', sub: 'Visa', logo: 'visa' },
 ]
 
-export const savedPaymentMethods = [
+export interface MockPaymentMethod {
+  id: number;
+  type: string;
+  name: string;
+  number: string;
+  logo: string;
+  favorite: boolean;
+}
+
+export const savedPaymentMethods: MockPaymentMethod[] = [
   { id: 1, type: 'Mobile Money', name: 'Orange Money', number: '+225 •••• 12 34', logo: 'orange', favorite: true },
   { id: 2, type: 'Mobile Money', name: 'MTN Mobile Money', number: '+225 •••• 5678', logo: 'mtn', favorite: false },
 ]
@@ -148,13 +157,34 @@ export const hotelChart = Array.from({ length: 11 }, (_, i) => {
   return { day, reservations, revenus }
 })
 
-export const hotelReservations = [
+export interface MockReservation {
+  id: number;
+  client: string;
+  email: string;
+  date: string;
+  service: string;
+  amount: number;
+  status: string;
+}
+
+export const hotelReservations: MockReservation[] = [
   { id: 1, client: 'Namo Kouassi', email: 'n.kouassi@email.com', date: '18/11/2026', service: 'Chambre Standard', amount: 45000, status: 'En attente' },
   { id: 2, client: 'Mamo Bamba', email: 'm.bamba@email.com', date: '12/11/2026', service: 'Chambre Supérieure', amount: 65000, status: 'Confirmée' },
   { id: 5, client: 'Awa Traoré', email: 'a.traore@email.com', date: '21/11/2026', service: 'Suite Junior', amount: 180000, status: 'En attente' },
 ]
 
-export const hotelEmployees = [
+export interface MockEmployee {
+  id: number | string;
+  name: string;
+  handle?: string;
+  role: string;
+  status: string;
+  added: string;
+  loginId?: string;
+  password?: string;
+}
+
+export const hotelEmployees: MockEmployee[] = [
   { id: 1, name: 'Namo Kouassi', handle: '@namo.k', role: 'Permissions complètes', status: 'Actif', added: '05/02/2026' },
   { id: 2, name: 'Mario Coron', handle: '@mario.c', role: 'Réceptionniste', status: 'Actif', added: '25/02/2026' },
 ]
@@ -184,12 +214,12 @@ export const carChart = Array.from({ length: 11 }, (_, i) => {
   return { day, reservations, revenus }
 })
 
-export const carReservations = [
+export const carReservations: MockReservation[] = [
   { id: 101, client: 'Koffi Jean', email: 'k.jean@email.com', date: '19/11/2026', service: 'Peugeot 3008 SUV', amount: 45000, status: 'En attente' },
   { id: 102, client: 'Sylvie N\'Guessan', email: 's.nguessan@email.com', date: '14/11/2026', service: 'Toyota Corolla Berline', amount: 105000, status: 'Confirmée' },
 ]
 
-export const carEmployees = [
+export const carEmployees: MockEmployee[] = [
   { id: 3, name: 'Ali Diarra', handle: '@ali.d', role: 'Gérant de parc', status: 'Actif', added: '10/01/2026' },
   { id: 4, name: 'Fatou Sylla', handle: '@fatou.s', role: 'Agent d\'accueil', status: 'Actif', added: '15/03/2026' },
 ]

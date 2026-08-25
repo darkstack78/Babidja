@@ -1,17 +1,19 @@
 import Link from 'next/link'
-import { Settings2, CarFront } from 'lucide-react'
+import Image from 'next/image'
+import { Settings2 } from 'lucide-react'
 import Placeholder from './Placeholder'
 import { fcfa } from '../utils/formatters'
+import type { Vehicle } from '@/types/catalog'
 
-export default function CarCard({ car, variant = 'catalog' }: { car: any; variant?: string }) {
+export default function CarCard({ car, variant = 'catalog' }: { car: Vehicle; variant?: string }) {
   return (
     <Link
       href={`/voiture/${car.id}`}
-      className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:-translate-y-1 focus-visible:shadow-lg"
     >
-      <div className="relative">
+      <div className="relative h-48 w-full overflow-hidden">
         {car.images && car.images.length > 0 ? (
-          <img src={car.images[0]} alt={car.name} className="h-48 w-full object-cover" />
+          <Image src={car.images[0]} alt={car.name} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <Placeholder kind={car.kind || 'car'} className="h-48 w-full" />
         )}

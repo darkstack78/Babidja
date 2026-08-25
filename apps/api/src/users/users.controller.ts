@@ -8,7 +8,14 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { StorageService } from '../storage/storage.service';
 import { BookingStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -27,17 +34,41 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly bookingsService: BookingsService,
     private readonly referralService: ReferralService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Get()
   async me(@CurrentUser() user: AuthenticatedUser) {
-    const found = await this.usersService.findById(user.userId);
-    return found && sanitizeUser(found);
+    const [found, tenantId] = await Promise.all([
+      this.usersService.findById(user.userId),
+      this.usersService.findCurrentTenantId(user.userId),
+    ]);
+    return found && { ...sanitizeUser(found), tenantId };
   }
 
   @Patch()
   async updateMe(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateUserDto) {
     const updated = await this.usersService.update(user.userId, dto);
+    return sanitizeUser(updated);
+  }
+
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(
+    @CurrentUser() user: AuthenticatedUser,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    const key = `avatars/${user.userId}-${Date.now()}-${file.originalname}`;
+    const avatarUrl = await this.storageService.upload(key, file.buffer, file.mimetype);
+    const updated = await this.usersService.update(user.userId, { avatarUrl });
     return sanitizeUser(updated);
   }
 

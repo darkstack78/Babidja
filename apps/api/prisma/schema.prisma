@@ -71,6 +71,7 @@ model User {
   firstName     String           @default("")
   lastName      String           @default("")
   avatarUrl     String?
+  address       String?
   walletBalance Decimal          @default(0)
   referralCode  String           @unique
   referredById  String?

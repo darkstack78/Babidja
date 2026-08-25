@@ -55,7 +55,16 @@ export const me = async (): Promise<User> => {
   return data;
 };
 
-export const updateMe = async (payload: { firstName?: string; lastName?: string; email?: string }): Promise<User> => {
+export const updateMe = async (payload: { firstName?: string; lastName?: string; email?: string; address?: string }): Promise<User> => {
   const { data } = await http.patch('/users/me', payload);
+  return data;
+};
+
+export const uploadAvatar = async (file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await http.post('/users/me/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return data;
 };

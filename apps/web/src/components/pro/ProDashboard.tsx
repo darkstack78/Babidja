@@ -1,6 +1,6 @@
 'use client';
 
-import { BedDouble, Percent, Coins, CircleHelp, Car } from 'lucide-react'
+import { BedDouble, Percent, Coins, CircleHelp, Car, type LucideIcon } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { hotelKpis, hotelChart, hotelReservations, hotelConfig, carKpis, carChart, carReservations, carConfig } from '@/data/mock'
 import { fcfa } from '@/utils/formatters'
@@ -10,7 +10,7 @@ const kpiStyle: Record<string, string> = {
   secondary: 'bg-secondary',
   danger: 'bg-danger',
 }
-const kpiIcon: Record<string, any> = { bed: BedDouble, percent: Percent, coins: Coins, help: CircleHelp, car: Car }
+const kpiIcon: Record<string, LucideIcon> = { bed: BedDouble, percent: Percent, coins: Coins, help: CircleHelp, car: Car }
 
 export default function ProDashboard({ type = 'hotel' }: { type?: 'hotel' | 'car' }) {
   const isCar = type === 'car'
@@ -72,7 +72,7 @@ export default function ProDashboard({ type = 'hotel' }: { type?: 'hotel' | 'car
               </tr>
             </thead>
             <tbody>
-              {reservations.slice(0, 4).map((r: any) => (
+              {reservations.slice(0, 4).map((r) => (
                 <tr key={r.id} className="border-b border-gray-50">
                   <td className="py-2.5 font-medium">{r.client}</td>
                   <td className="py-2.5">{r.service}</td>

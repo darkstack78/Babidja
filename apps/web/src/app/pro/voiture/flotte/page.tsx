@@ -1,11 +1,26 @@
 'use client';
 
 import { useState } from 'react'
+import NextImage from 'next/image'
 import { Plus, Search, Edit, Trash2, Image as ImageIcon, X } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { fcfa } from '@/utils/formatters'
-import { useCatalogStore } from '@/store/useCatalogStore'
+import { useCatalogStore, type EnrichedCar } from '@/store/useCatalogStore'
+
+// Brouillon du formulaire : prix reste une chaîne tant que le champ n'a pas
+// été modifié (valeur initiale vide), puis devient un nombre via
+// Number(e.target.value) dans les onChange ci-dessous.
+interface CarDraft {
+  id?: string;
+  name: string;
+  price: number | string;
+  type: string;
+  transmission: string;
+  seats: number;
+  status: string;
+  images: string[];
+}
 
 export default function CarFleet() {
   const cars = useCatalogStore(state => state.cars)
@@ -13,11 +28,11 @@ export default function CarFleet() {
   const updateCar = useCatalogStore(state => state.updateCar)
   const deleteCar = useCatalogStore(state => state.deleteCar)
   const [searchTerm, setSearchTerm] = useState('')
-  const [editingCar, setEditingCar] = useState<any>(null)
+  const [editingCar, setEditingCar] = useState<CarDraft | null>(null)
 
-  const filteredCars = cars.filter((c: any) => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredCars = cars.filter((c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-  const handleOpenModal = (car: any = null) => {
+  const handleOpenModal = (car: EnrichedCar | null = null) => {
     if (car) {
       setEditingCar({ ...car, images: car.images && car.images.length > 0 ? [...car.images] : [''] })
     } else {
@@ -31,13 +46,14 @@ export default function CarFleet() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
-    const cleanedImages = editingCar.images.filter((img: string) => img.trim() !== '')
+    if (!editingCar) return
+    const cleanedImages = editingCar.images.filter((img) => img.trim() !== '')
     const carToSave = { ...editingCar, images: cleanedImages }
 
     if (editingCar.id) {
-      updateCar(carToSave)
+      updateCar(carToSave as EnrichedCar)
     } else {
-      addCar(carToSave)
+      addCar(carToSave as EnrichedCar)
     }
     handleCloseModal()
   }
@@ -74,11 +90,11 @@ export default function CarFleet() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredCars.map((car: any) => (
+        {filteredCars.map((car) => (
           <div key={car.id} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all hover:shadow-md">
             <div className="relative aspect-video bg-gray-100">
               {car.images && car.images.length > 0 ? (
-                <img src={car.images[0]} alt={car.name} className="h-full w-full object-cover" />
+                <NextImage src={car.images[0]} alt={car.name} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center">
                   <ImageIcon className="size-8 text-gray-300" />

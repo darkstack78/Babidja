@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Plus, Pencil, Ban, X, Check } from 'lucide-react'
 import Avatar from '@/components/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import Checkbox from '@/components/ui/Checkbox'
 import Input from '@/components/ui/Input'
-import { hotelEmployees, carEmployees, employeePermissions } from '@/data/mock'
+import { hotelEmployees, carEmployees, employeePermissions, type MockEmployee } from '@/data/mock'
 
 export default function ProEmployees({ type = 'hotel' }: { type?: 'hotel' | 'car' }) {
   const isCar = type === 'car'
@@ -17,10 +17,14 @@ export default function ProEmployees({ type = 'hotel' }: { type?: 'hotel' | 'car
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | number | null>(null)
 
-  useEffect(() => {
+  // Ré-initialise la liste locale (mock) quand le type de fiche change, sans passer par un effect
+  // (cf. https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+  const [prevType, setPrevType] = useState(type)
+  if (type !== prevType) {
+    setPrevType(type)
     setEmpList(initialData)
-  }, [type, initialData])
-  
+  }
+
   // Form states
   const [name, setName] = useState('')
   const [contact, setContact] = useState('')
@@ -31,7 +35,7 @@ export default function ProEmployees({ type = 'hotel' }: { type?: 'hotel' | 'car
     Object.fromEntries(employeePermissions.map((p) => [p.id, p.default]))
   )
 
-  const handleOpenModal = (emp: any = null) => {
+  const handleOpenModal = (emp: MockEmployee | null = null) => {
     if (emp) {
       setEditingId(emp.id)
       setName(emp.name)
@@ -57,7 +61,7 @@ export default function ProEmployees({ type = 'hotel' }: { type?: 'hotel' | 'car
     if (!name.trim()) return
 
     if (editingId) {
-      setEmpList(empList.map((emp: any) => 
+      setEmpList(empList.map((emp) =>
         emp.id === editingId ? { ...emp, name, handle: contact, role: role || 'Employé', loginId, password } : emp
       ))
     } else {
@@ -77,7 +81,7 @@ export default function ProEmployees({ type = 'hotel' }: { type?: 'hotel' | 'car
   }
 
   const toggleStatus = (id: string | number) => {
-    setEmpList(empList.map((emp: any) =>
+    setEmpList(empList.map((emp) =>
       emp.id === id ? { ...emp, status: emp.status === 'Actif' ? 'Inactif' : 'Actif' } : emp
     ))
   }
@@ -103,7 +107,7 @@ export default function ProEmployees({ type = 'hotel' }: { type?: 'hotel' | 'car
             </tr>
           </thead>
           <tbody>
-            {empList.map((e: any) => (
+            {empList.map((e) => (
               <tr key={e.id} className="border-b border-gray-50">
                 <td className="py-3">
                   <span className="flex items-center gap-2.5">

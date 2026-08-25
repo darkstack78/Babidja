@@ -16,8 +16,14 @@ export function GoogleIcon({ className = 'size-4' }: { className?: string }) {
   )
 }
 
+interface AuthTab {
+  id: string
+  icon?: React.ReactNode
+  label: string
+}
+
 /** Onglets Téléphone / E-mail / Google des écrans de connexion. */
-export function AuthTabs({ tabs, active, onChange }: { tabs: any[], active: string, onChange: (id: string) => void }) {
+export function AuthTabs({ tabs, active, onChange }: { tabs: AuthTab[], active: string, onChange: (id: string) => void }) {
   return (
     <div className="flex items-center justify-between gap-2 border-b border-gray-200">
       {tabs.map((tab) => (

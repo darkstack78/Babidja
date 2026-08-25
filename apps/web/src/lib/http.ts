@@ -87,3 +87,8 @@ http.interceptors.response.use(
 
 export default http;
 
+import type { AxiosRequestConfig } from 'axios';
+
+export const customInstance = <T>(config: AxiosRequestConfig, options?: AxiosRequestConfig): Promise<T> => {
+  return http({ ...config, ...options }).then(({ data }) => data);
+};

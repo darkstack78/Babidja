@@ -1,17 +1,17 @@
 'use client';
 
-import { Network, Coins, Users, CircleHelp } from 'lucide-react'
+import { Network, Coins, Users, CircleHelp, type LucideIcon } from 'lucide-react'
 import { adminKpis } from '@/data/mock'
 
 const kpiColor: Record<string, string> = { primary: 'bg-primary', secondary: 'bg-secondary', danger: 'bg-danger' }
-const kpiIcons: Record<string, any> = { network: Network, coins: Coins, users: Users, help: CircleHelp }
+const kpiIcons: Record<string, LucideIcon> = { network: Network, coins: Coins, users: Users, help: CircleHelp }
 
 export default function AdminDashboard() {
   return (
     <div>
-      <h1 className="text-xl font-bold">Paramètres techniques & d'administration globale</h1>
+      <h1 className="text-xl font-bold">Paramètres techniques & d&apos;administration globale</h1>
       <p className="mt-2 text-sm text-gray-600">
-        Espace réservé à l'administrateur système pour la maintenance de la plateforme.
+        Espace réservé à l&apos;administrateur système pour la maintenance de la plateforme.
       </p>
 
       {/* KPIs */}

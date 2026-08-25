@@ -26,9 +26,16 @@ export default function ChatUI({ role, bookingId, chatName }: ChatUIProps) {
   const { accessToken } = useAuthStore()
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
+  const [optimisticMessage, setOptimisticMessage] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const socketRef = useRef<Socket | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
+  }
 
   // Fetch initial messages
   useEffect(() => {
@@ -70,6 +77,7 @@ export default function ChatUI({ role, bookingId, chatName }: ChatUIProps) {
 
     socket.on('message', (msg: Message) => {
       setMessages((prev) => [...prev, msg])
+      setOptimisticMessage(null) // clear optimistic message when actual arrives
       scrollToBottom()
     })
 
@@ -84,12 +92,6 @@ export default function ChatUI({ role, bookingId, chatName }: ChatUIProps) {
     }
   }, [accessToken, bookingId])
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
-  }
-
   // Auto scroll on initial load
   useEffect(() => {
     scrollToBottom()
@@ -98,12 +100,15 @@ export default function ChatUI({ role, bookingId, chatName }: ChatUIProps) {
   const handleSend = () => {
     if (!inputValue.trim() || !socketRef.current || !isConnected) return
     
+    const content = inputValue;
+    setOptimisticMessage(content)
+    setInputValue('')
+    
     socketRef.current.emit('sendMessage', {
       bookingId,
-      content: inputValue
+      content
     })
-    
-    setInputValue('')
+    scrollToBottom()
   }
 
   if (!bookingId) {
@@ -150,6 +155,14 @@ export default function ChatUI({ role, bookingId, chatName }: ChatUIProps) {
             </div>
           )
         })}
+        {optimisticMessage && (
+          <div className="flex w-full justify-end">
+            <div className="max-w-[80%] rounded-2xl p-4 bg-primary text-white rounded-br-none opacity-50">
+              <p className="text-sm">{optimisticMessage}</p>
+              <span className="mt-1 block text-right text-[10px] opacity-70">Envoi...</span>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

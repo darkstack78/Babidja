@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Search } from 'lucide-react'
 import Avatar from '@/components/Avatar'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import { hotelReservations, carReservations } from '@/data/mock'
+import { hotelReservations, carReservations, type MockReservation } from '@/data/mock'
 import { fcfa } from '@/utils/formatters'
 
 const filters = ['Toutes', 'En attente', 'Confirmées', 'Annulées']
@@ -20,18 +20,22 @@ export default function ProReservations({ type = 'hotel' }: { type?: 'hotel' | '
   const [filter, setFilter] = useState('Toutes')
   const [query, setQuery] = useState('')
 
-  useEffect(() => {
+  // Ré-initialise la liste locale (mock) quand le type de fiche change, sans passer par un effect
+  // (cf. https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+  const [prevType, setPrevType] = useState(type)
+  if (type !== prevType) {
+    setPrevType(type)
     setReservations(initialData)
-  }, [type, initialData])
+  }
 
   const shown = reservations.filter(
-    (r: any) =>
+    (r: MockReservation) =>
       (filter === 'Toutes' || r.status === filterToStatus[filter]) &&
       r.client.toLowerCase().includes(query.toLowerCase()),
   )
 
-  const handleUpdateStatus = (id: string, newStatus: string) => {
-    setReservations(reservations.map((r: any) => 
+  const handleUpdateStatus = (id: number, newStatus: string) => {
+    setReservations(reservations.map((r: MockReservation) =>
       r.id === id ? { ...r, status: newStatus } : r
     ))
   }
@@ -76,7 +80,7 @@ export default function ProReservations({ type = 'hotel' }: { type?: 'hotel' | '
             </tr>
           </thead>
           <tbody>
-            {shown.map((r: any) => (
+            {shown.map((r: MockReservation) => (
               <tr key={r.id} className="border-b border-gray-50">
                 <td className="py-3">
                   <span className="flex items-center gap-2.5">

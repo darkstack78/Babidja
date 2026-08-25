@@ -25,6 +25,14 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async findCurrentTenantId(userId: string): Promise<string | undefined> {
+    const employee = await this.prisma.tenantEmployee.findFirst({
+      where: { userId, isActive: true },
+      select: { tenantId: true },
+    });
+    return employee?.tenantId;
+  }
+
   async create(
     data: Omit<Prisma.UserCreateInput, 'referralCode'> & { referralCode?: string },
   ): Promise<User> {

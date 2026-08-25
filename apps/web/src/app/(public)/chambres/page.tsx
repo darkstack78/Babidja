@@ -1,57 +1,55 @@
-'use client';
-import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import BookingWidget from '@/components/BookingWidget'
-import RoomCard from '@/components/RoomCard'
-import { fetchRooms } from '@/lib/api/catalog'
+import ChambresClient from './ChambresClient'
 import type { Room } from '@/types/catalog'
+import type { PlaceholderKind } from '@/components/Placeholder'
 
-function FilterChip({ label }: { label: string }) {
-  return (
-    <button className="flex items-center gap-1 rounded-full border border-gray-300 bg-white px-3.5 py-1.5 text-sm hover:border-secondary">
-      {label}
-      <ChevronDown className="size-3.5" />
-    </button>
-  )
+const VALID_PLACEHOLDER_KINDS: PlaceholderKind[] = [
+  'beach', 'hotel', 'room', 'pool', 'car', 'monument', 'hut', 'map',
+];
+
+function toPlaceholderKind(kind: string): PlaceholderKind {
+  return (VALID_PLACEHOLDER_KINDS as string[]).includes(kind) ? (kind as PlaceholderKind) : 'room';
 }
 
-export default function RoomsCatalog() {
-  const { data: rooms = [] } = useQuery({
-    queryKey: ['rooms'],
-    queryFn: fetchRooms,
-  })
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      {/* Fil d'ariane */}
-      <nav className="text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-secondary">Accueil</Link>
-        <span className="mx-1.5">›</span>
-        <span className="font-medium text-ink">Chambres & Suites</span>
-      </nav>
+function mapRoom(dto: any): Room {
+  return {
+    id: dto.id,
+    name: dto.name,
+    description: dto.description ?? '',
+    price: Number(dto.basePrice),
+    capacityAdults: dto.capacityAdults,
+    capacityChildren: dto.capacityChildren,
+    size: dto.sizeSqm ?? undefined,
+    kind: toPlaceholderKind(dto.kind),
+    amenities: dto.amenities,
+    images: dto.images,
+  };
+}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">Nos Chambres & Suites</h1>
-        <p className="mt-2 text-lg text-gray-600 max-w-2xl">
-          Découvrez nos espaces conçus pour votre confort. Chaque chambre offre une expérience unique avec des équipements haut de gamme.
-        </p>
-      </div>
+async function fetchRoomsSSR(): Promise<Room[]> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+    
+    // fetch hotels
+    const hotelsRes = await fetch(`${apiUrl}/hotels`, { next: { revalidate: 60 } });
+    if (!hotelsRes.ok) return [];
+    
+    const hotelsPage = await hotelsRes.json();
+    const firstHotel = hotelsPage.data?.[0];
+    if (!firstHotel) return [];
 
-      <div className="mb-8 w-full max-w-5xl rounded-3xl bg-gray-50 p-6">
-        <BookingWidget className="shadow-none border border-gray-200" />
-      </div>
+    // fetch hotel details
+    const hotelRes = await fetch(`${apiUrl}/hotels/${firstHotel.id}`, { next: { revalidate: 60 } });
+    if (!hotelRes.ok) return [];
+    
+    const hotel = await hotelRes.json();
+    return ((hotel.rooms ?? []) as any[]).map(mapRoom);
+  } catch (error) {
+    console.error("Failed to fetch rooms for SSR", error);
+    return [];
+  }
+}
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        <FilterChip label="Capacité" />
-        <FilterChip label="Prix" />
-        <FilterChip label="Équipements" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {rooms.map((r: Room) => (
-          <RoomCard key={r.id} room={r} variant="catalog" />
-        ))}
-      </div>
-    </div>
-  )
+export default async function RoomsCatalogPage() {
+  const rooms = await fetchRoomsSSR();
+  return <ChambresClient initialRooms={rooms} />;
 }

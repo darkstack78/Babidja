@@ -1,11 +1,24 @@
 'use client';
 
 import { useState } from 'react'
+import NextImage from 'next/image'
 import { Plus, Search, Edit, Trash2, Image as ImageIcon, X } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { fcfa } from '@/utils/formatters'
-import { useCatalogStore } from '@/store/useCatalogStore'
+import { useCatalogStore, type EnrichedRoom } from '@/store/useCatalogStore'
+
+// Brouillon du formulaire : prix/capacité restent des chaînes tant que le champ
+// n'a pas été modifié (valeur initiale vide), puis deviennent des nombres via
+// Number(e.target.value) dans les onChange ci-dessous.
+interface RoomDraft {
+  id?: string;
+  name: string;
+  price: number | string;
+  capacity: number | string;
+  status: string;
+  images: string[];
+}
 
 export default function HotelCatalog() {
   const rooms = useCatalogStore(state => state.rooms)
@@ -13,11 +26,11 @@ export default function HotelCatalog() {
   const updateRoom = useCatalogStore(state => state.updateRoom)
   const deleteRoom = useCatalogStore(state => state.deleteRoom)
   const [searchTerm, setSearchTerm] = useState('')
-  const [editingRoom, setEditingRoom] = useState<any>(null)
+  const [editingRoom, setEditingRoom] = useState<RoomDraft | null>(null)
 
-  const filteredRooms = rooms.filter((r: any) => r.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredRooms = rooms.filter((r) => r.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-  const handleOpenModal = (room: any = null) => {
+  const handleOpenModal = (room: EnrichedRoom | null = null) => {
     if (room) {
       setEditingRoom({ ...room, images: room.images && room.images.length > 0 ? [...room.images] : [''] })
     } else {
@@ -31,14 +44,15 @@ export default function HotelCatalog() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!editingRoom) return
     // Retirer les URLs vides avant de sauvegarder
-    const cleanedImages = editingRoom.images.filter((img: string) => img.trim() !== '')
+    const cleanedImages = editingRoom.images.filter((img) => img.trim() !== '')
     const roomToSave = { ...editingRoom, images: cleanedImages }
 
     if (editingRoom.id) {
-      updateRoom(roomToSave)
+      updateRoom(roomToSave as EnrichedRoom)
     } else {
-      addRoom(roomToSave)
+      addRoom(roomToSave as EnrichedRoom)
     }
     handleCloseModal()
   }
@@ -77,11 +91,11 @@ export default function HotelCatalog() {
 
       {/* Liste des chambres (Grille) */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredRooms.map((room: any) => (
+        {filteredRooms.map((room) => (
           <div key={room.id} className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all hover:shadow-md">
             <div className="relative aspect-video bg-gray-100">
               {room.images && room.images.length > 0 ? (
-                <img src={room.images[0]} alt={room.name} className="h-full w-full object-cover" />
+                <NextImage src={room.images[0]} alt={room.name} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center">
                   <ImageIcon className="size-8 text-gray-300" />

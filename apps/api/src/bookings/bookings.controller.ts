@@ -6,20 +6,27 @@ import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreateBookingCommand } from './commands/impl/create-booking.command';
+import { GetUserBookingsQuery } from './queries/impl/get-user-bookings.query';
 
 @UseGuards(JwtAuthGuard)
 @Controller('bookings')
 export class BookingsController {
-  constructor(private readonly bookingsService: BookingsService) {}
+  constructor(
+    private readonly bookingsService: BookingsService,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateBookingDto, @CurrentUser() user: AuthenticatedUser) {
-    return this.bookingsService.createBooking(dto, user.userId);
+    return this.commandBus.execute(new CreateBookingCommand(dto, user.userId));
   }
 
   @Get('my-bookings')
   myBookings(@CurrentUser() user: AuthenticatedUser) {
-    return this.bookingsService.findUserBookings(user.userId);
+    return this.queryBus.execute(new GetUserBookingsQuery(user.userId));
   }
 
   @Get(':id')

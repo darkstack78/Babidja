@@ -46,7 +46,9 @@ export default function AuthDrawer() {
     setOtpAttempts(0)
   }
 
-  // Prevent scroll when drawer is open
+  // Prevent scroll when drawer is open, and reset the forms once it closes.
+  // Doit rester dans un effect : la remise à zéro ne doit se produire qu'à la
+  // transition isDrawerOpen -> false, pas à chaque rendu.
   useEffect(() => {
     if (isDrawerOpen) {
       document.body.style.overflow = 'hidden'
@@ -54,6 +56,7 @@ export default function AuthDrawer() {
       document.body.style.overflow = 'unset'
       resetLogin()
       resetSignup()
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       resetPhoneFlow()
       setFormError('')
     }
@@ -119,7 +122,7 @@ export default function AuthDrawer() {
       const { accessToken, refreshToken, user } = await verifyOtp(phone, otpCode)
       setSession({ accessToken, refreshToken, user })
       closeDrawer()
-    } catch (error) {
+    } catch {
       const newAttempts = otpAttempts + 1
       setOtpAttempts(newAttempts)
       const remaining = OTP_MAX_ATTEMPTS - newAttempts

@@ -1,22 +1,24 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Users, LayoutTemplate } from 'lucide-react'
 import Placeholder from './Placeholder'
 import { fcfa } from '../utils/formatters'
+import type { Room } from '@/types/catalog'
 
 /**
  * Carte de chambre (mono-établissement)
  * variant "featured" : nom superposé sur l'image, prix "Dès X FCFA" (accueil)
  * variant "catalog"  : nom sur bandeau sombre + infos de base + prix (catalogue)
  */
-export default function RoomCard({ room, variant = 'featured' }: { room: any; variant?: string }) {
+export default function RoomCard({ room, variant = 'featured' }: { room: Room; variant?: string }) {
   return (
     <Link
       href={`/chambre/${room.id}`}
-      className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:-translate-y-1 focus-visible:shadow-lg"
     >
-      <div className="relative">
+      <div className="relative h-48 w-full overflow-hidden">
         {room.images && room.images.length > 0 ? (
-          <img src={room.images[0]} alt={room.name} className="h-48 w-full object-cover" />
+          <Image src={room.images[0]} alt={room.name} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <Placeholder kind={room.kind} className="h-48 w-full" />
         )}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Placeholder from '@/components/Placeholder'
 import Toggle from '@/components/ui/Toggle'
@@ -31,25 +32,17 @@ export default function ProCalendar({ type = 'hotel' }: { type?: 'hotel' | 'car'
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [priceInput, setPriceInput] = useState('')
 
-  useEffect(() => {
-    // If the items list changes (e.g., from rooms to cars) and current selection is no longer valid
-    if (items.length > 0 && !items.find((i: any) => i.id === selectedItemId)) {
+  // Si la liste d'items change (ex. passage chambres -> voitures) et que la
+  // sélection courante n'existe plus, on la réinitialise pendant le rendu
+  // plutôt que dans un effect (cf. https://react.dev/learn/you-might-not-need-an-effect).
+  const [prevItems, setPrevItems] = useState(items)
+  if (items !== prevItems) {
+    setPrevItems(items)
+    if (items.length > 0 && !items.find((i) => i.id === selectedItemId)) {
       setSelectedItemId(items[0].id)
       setSelectedDate(null)
     }
-  }, [items, selectedItemId])
-
-  useEffect(() => {
-    if (selectedDate && selectedItemId) {
-      // Adjust timezone so ISOString produces correct local date string
-      const localDate = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000))
-      const dateStr = localDate.toISOString().split('T')[0]
-      const itemCal = calendar[selectedItemId] || {}
-      const dayData = itemCal[dateStr]
-      const defaultPrice = items.find((i: any) => i.id === selectedItemId)?.price || 0
-      setPriceInput(dayData?.price?.toString() || defaultPrice.toString())
-    }
-  }, [selectedDate, selectedItemId, calendar, items])
+  }
 
   const handlePrevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
@@ -77,12 +70,20 @@ export default function ProCalendar({ type = 'hotel' }: { type?: 'hotel' | 'car'
   const emptyCells = Array.from({ length: firstDay })
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
-  const item = items.find((i: any) => i.id === selectedItemId)
+  const item = items.find((i) => i.id === selectedItemId)
   const itemCal = calendar[selectedItemId] || {}
 
   const getLocalDateStr = (d: Date) => {
     const localDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000))
     return localDate.toISOString().split('T')[0]
+  }
+
+  const handleSelectDate = (d: Date) => {
+    setSelectedDate(d)
+    const dateStr = getLocalDateStr(d)
+    const dayData = itemCal[dateStr]
+    const defaultPrice = item?.price || 0
+    setPriceInput(dayData?.price?.toString() || defaultPrice.toString())
   }
 
   const handleSavePrice = () => {
@@ -119,7 +120,7 @@ export default function ProCalendar({ type = 'hotel' }: { type?: 'hotel' | 'car'
               setSelectedDate(null)
             }}
           >
-            {items.map((i: any) => (
+            {items.map((i) => (
               <option key={i.id} value={i.id}>{i.name}</option>
             ))}
           </select>
@@ -150,7 +151,7 @@ export default function ProCalendar({ type = 'hotel' }: { type?: 'hotel' | 'car'
               return (
                 <button
                   key={day}
-                  onClick={() => setSelectedDate(d)}
+                  onClick={() => handleSelectDate(d)}
                   className={`flex flex-col items-center rounded-lg py-1.5 text-xs font-semibold transition-transform hover:scale-105 ${cellStyle[dayData.status]} ${isSelected ? 'ring-2 ring-ink ring-offset-2' : ''}`}
                 >
                   <span className="text-sm">{day}</span>
@@ -176,7 +177,9 @@ export default function ProCalendar({ type = 'hotel' }: { type?: 'hotel' | 'car'
         {/* Panneau latéral */}
         <aside className="rounded-2xl bg-white p-5 shadow-sm">
           {item?.images && item.images.length > 0 && item.images[0].trim() !== '' ? (
-            <img src={item.images[0]} alt="" className="h-40 w-full rounded-xl object-cover" />
+            <div className="relative h-40 w-full overflow-hidden rounded-xl">
+              <Image src={item.images[0]} alt="" fill sizes="300px" className="object-cover" />
+            </div>
           ) : (
             <Placeholder kind={item?.kind || (isCar ? 'car' : 'room')} className="h-40 w-full rounded-xl" />
           )}

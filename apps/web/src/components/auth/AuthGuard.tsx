@@ -20,6 +20,9 @@ export default function AuthGuard({ children, redirectUrl = '/', allowedRoles }:
   const authorized = isAuthenticated && (!allowedRoles || (!!user && allowedRoles.includes(user.role)))
 
   useEffect(() => {
+    // Attend l'hydratation du store persistant (zustand) avant d'évaluer l'autorisation,
+    // pour éviter de rediriger un utilisateur en réalité déjà connecté.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

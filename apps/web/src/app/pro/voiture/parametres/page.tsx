@@ -16,7 +16,7 @@ export default function CarSettings() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Paramètres de l'agence</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Paramètres de l&apos;agence</h1>
         <p className="text-sm text-gray-500">Gérez les informations publiques et la configuration de votre agence de location.</p>
       </div>
 
@@ -24,7 +24,7 @@ export default function CarSettings() {
         {/* Colonne de gauche (Menu interne ou info) */}
         <div className="md:col-span-1 space-y-4">
           <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
-            <h3 className="font-semibold text-gray-900">Photos de l'agence</h3>
+            <h3 className="font-semibold text-gray-900">Photos de l&apos;agence</h3>
             <p className="mt-1 text-xs text-gray-500">La première image sera utilisée comme couverture.</p>
             
             <div className="mt-4 flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -45,7 +45,7 @@ export default function CarSettings() {
             
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">Nom de l'agence</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Nom de l&apos;agence</label>
                 <Input defaultValue="LocaAuto Abidjan" />
               </div>
               

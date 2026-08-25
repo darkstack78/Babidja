@@ -1,26 +1,35 @@
 'use client';
+import { useState } from 'react'
 import Link from 'next/link'
-import { BedDouble, Car, ChevronRight, Loader2, Star, MapPin } from 'lucide-react'
+import { BedDouble, Car, ChevronRight, Star, MapPin, MessageCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import RoomCard from '@/components/RoomCard'
 import CarCard from '@/components/CarCard'
 import { fetchRooms, fetchCars } from '@/lib/api/catalog'
 import { hotelConfig } from '@/data/mock'
 import BookingWidget from '@/components/BookingWidget'
+import CardSkeleton from '@/components/ui/CardSkeleton'
 import type { Room, Vehicle } from '@/types/catalog'
+import http from '@/lib/http'
 
-// UX-01 : Skeleton loader générique
-function CardSkeleton() {
-  return (
-    <div className="animate-pulse rounded-2xl overflow-hidden bg-white shadow-sm">
-      <div className="h-48 bg-gray-200" />
-      <div className="p-4 space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-3/4" />
-        <div className="h-3 bg-gray-100 rounded w-1/2" />
-        <div className="h-3 bg-gray-100 rounded w-1/4 mt-2" />
-      </div>
-    </div>
-  )
+interface Review {
+  id: string
+  rating: number
+  comment: string | null
+  createdAt: string
+  user?: { firstName: string; lastName: string }
+}
+
+async function fetchReviews(): Promise<Review[]> {
+  try {
+    const { data: hotelsPage } = await http.get('/hotels')
+    const firstHotel = hotelsPage.data?.[0]
+    if (!firstHotel) return []
+    const { data } = await http.get(`/hotels/${firstHotel.id}/reviews`)
+    return Array.isArray(data) ? data : data.data ?? []
+  } catch {
+    return []
+  }
 }
 
 function SectionHeader({ title, to }: { title: string, to: string }) {
@@ -37,11 +46,10 @@ function SectionHeader({ title, to }: { title: string, to: string }) {
 }
 
 export default function Home() {
-  // UX-01 : Données réelles depuis l'API (remplacement des mocks statiques)
   const { data: rooms = [], isLoading: roomsLoading, isError: roomsError } = useQuery<Room[]>({
     queryKey: ['rooms'],
     queryFn: fetchRooms,
-    staleTime: 5 * 60 * 1000, // 5 min de cache
+    staleTime: 5 * 60 * 1000,
   })
 
   const { data: cars = [], isLoading: carsLoading, isError: carsError } = useQuery<Vehicle[]>({
@@ -50,11 +58,19 @@ export default function Home() {
     staleTime: 5 * 60 * 1000,
   })
 
+  const { data: reviews = [] } = useQuery<Review[]>({
+    queryKey: ['reviews-home'],
+    queryFn: fetchReviews,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const [mapsError, setMapsError] = useState(false)
+
   return (
     <div className="mx-auto max-w-7xl px-4 pb-8 sm:px-6">
       {/* Bannière hero */}
       <section className="relative mt-4 flex min-h-[50vh] sm:min-h-[400px] flex-col justify-center overflow-hidden rounded-3xl bg-[url('/image_banniere_de_recherche.png')] bg-cover bg-center px-6 py-16 sm:px-12 sm:py-24">
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-black/20"></div>
         <div className="relative z-10">
           <h1 className="max-w-xl text-4xl font-extrabold leading-tight text-white sm:text-5xl">
             Bienvenue à {hotelConfig.name}
@@ -144,48 +160,78 @@ export default function Home() {
               <p className="text-sm">{hotelConfig.address}</p>
             </div>
           </div>
-          <div className="mt-6 h-80 w-full overflow-hidden rounded-2xl bg-gray-100">
+          {mapsError ? (
+            <div className="mt-6 flex h-80 w-full items-center justify-center rounded-2xl bg-gray-100">
+              <div className="text-center">
+                <MapPin className="mx-auto size-8 text-gray-400" />
+                <p className="mt-2 text-sm text-gray-500">Carte non disponible.</p>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotelConfig.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-sm font-semibold text-[#e97c2a] hover:underline"
+                >
+                  Ouvrir dans Google Maps →
+                </a>
+              </div>
+            </div>
+          ) : (
             <iframe
-              width="100%"
-              height="100%"
+              className="mt-6 h-80 w-full overflow-hidden rounded-2xl"
               frameBorder="0"
               scrolling="no"
               marginHeight={0}
               marginWidth={0}
               src={`https://maps.google.com/maps?q=${encodeURIComponent(hotelConfig.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+              onError={() => setMapsError(true)}
+              title="Localisation de l'hôtel"
             />
-          </div>
+          )}
         </div>
       </section>
 
       {/* Section Avis Clients */}
       <section className="mt-16 border-t border-gray-100 pt-16">
         <SectionHeader title="Ce que disent nos clients" to="" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {[
-            { id: 1, name: 'Jean D.', rating: 5, date: 'Il y a 2 jours', comment: 'Séjour exceptionnel ! Le service était impeccable et la chambre magnifique.' },
-            { id: 2, name: 'Marie S.', rating: 4, date: 'Il y a 1 semaine', comment: 'Très bon hôtel, bien situé. Le petit-déjeuner pourrait être plus varié, mais dans l\'ensemble c\'était super.' },
-            { id: 3, name: 'Paul K.', rating: 5, date: 'Il y a 2 semaines', comment: 'L\'hôtel est magnifique, avec un personnel très à l\'écoute. La piscine est un vrai plus.' }
-          ].map(review => (
-            <div key={review.id} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="grid size-10 place-items-center rounded-full bg-pastel text-primary font-bold">
-                  {review.name.charAt(0)}
+        {reviews.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-gray-400">
+            <MessageCircle className="size-12 text-gray-200" />
+            <p className="text-sm font-medium">Aucun avis pour le moment.</p>
+            <p className="text-xs text-gray-300">Soyez le premier à laisser un avis après votre séjour !</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {reviews.slice(0, 3).map((review) => {
+              const name = review.user
+                ? [review.user.firstName, review.user.lastName].filter(Boolean).join(' ') || 'Client'
+                : 'Client vérifié'
+              const date = new Date(review.createdAt).toLocaleDateString('fr-FR', {
+                day: 'numeric', month: 'long', year: 'numeric',
+              })
+              return (
+                <div key={review.id} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-10 place-items-center rounded-full bg-pastel text-primary font-bold">
+                      {name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">{name}</p>
+                      <p className="text-xs text-gray-500">{date}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`size-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`} />
+                    ))}
+                  </div>
+                  {review.comment && (
+                    <p className="mt-3 text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                  )}
                 </div>
-                <div>
-                  <p className="font-bold text-gray-900">{review.name}</p>
-                  <p className="text-xs text-gray-500">{review.date}</p>
-                </div>
-              </div>
-              <div className="mt-4 flex gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`size-4 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`} />
-                ))}
-              </div>
-              <p className="mt-3 text-sm text-gray-600 leading-relaxed">{review.comment}</p>
-            </div>
-          ))}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </section>
     </div>
   )

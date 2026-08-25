@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import QueryProvider from "@/providers/QueryProvider";
 import AuthDrawer from "@/components/auth/AuthDrawer";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
+import { Toaster } from 'sonner';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 import "./globals.css";
 
 const poppins = Poppins({
@@ -19,14 +23,16 @@ export const metadata: Metadata = {
   // que les deux coexistent de façon incohérente.
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const messages = await getMessages();
   return (
     <html lang="fr" className={`${poppins.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans text-gray-900 bg-[#f6f6f4]">
+        <NextIntlClientProvider messages={messages}>
         <QueryProvider>
           {children}
           {/* Monté une seule fois ici : openDrawer() est appelé depuis des pages sous
@@ -34,7 +40,10 @@ export default function RootLayout({
               n'était auparavant jamais rendu nulle part dans l'arbre, ce qui rendait
               tout le flux de connexion invisible malgré un state Zustand correct. */}
           <AuthDrawer />
+          <InstallPrompt />
+          <Toaster position="top-center" richColors />
         </QueryProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

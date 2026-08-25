@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Settings2, ShieldCheck, Fuel } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCars } from '@/lib/api/catalog'
@@ -10,6 +11,25 @@ import CarBookingSidebar from '@/components/car/CarBookingSidebar'
 import Placeholder from '@/components/Placeholder'
 import BackButton from '@/components/ui/BackButton'
 
+function DetailSkeleton() {
+  return (
+    <div className="mx-auto max-w-5xl animate-pulse px-4 py-6 sm:px-6">
+      <div className="mb-4 h-4 w-48 rounded bg-gray-200" />
+      <div className="h-64 rounded-3xl bg-gray-200 sm:h-96" />
+      <div className="mt-8 h-8 w-2/3 rounded bg-gray-200" />
+      <div className="mt-4 flex gap-3">
+        <div className="h-7 w-28 rounded-full bg-gray-100" />
+        <div className="h-7 w-28 rounded-full bg-gray-100" />
+      </div>
+      <div className="mt-8 space-y-2">
+        <div className="h-4 w-full rounded bg-gray-100" />
+        <div className="h-4 w-5/6 rounded bg-gray-100" />
+        <div className="h-4 w-2/3 rounded bg-gray-100" />
+      </div>
+    </div>
+  )
+}
+
 export default function CarDetail() {
   const { id } = useParams()
   const { data: cars = [], isLoading } = useQuery({
@@ -17,7 +37,7 @@ export default function CarDetail() {
     queryFn: fetchCars,
   })
 
-  if (isLoading) return <div className="p-8 text-center">Chargement...</div>
+  if (isLoading) return <DetailSkeleton />
 
   const car = cars.find((c: Vehicle) => c.id === id) ?? cars[0]
 
@@ -36,8 +56,12 @@ export default function CarDetail() {
       </nav>
 
       {/* Image principale */}
-      <div className="rounded-3xl overflow-hidden shadow-sm">
-        <Placeholder kind={car.kind || 'car'} className="w-full h-64 sm:h-96" />
+      <div className="relative h-64 overflow-hidden rounded-3xl shadow-sm sm:h-96">
+        {car.images && car.images.length > 0 ? (
+          <Image src={car.images[0]} alt={car.name} fill priority sizes="(min-width: 1024px) 64rem, 100vw" className="object-cover" />
+        ) : (
+          <Placeholder kind={car.kind || 'car'} className="h-full w-full" />
+        )}
       </div>
 
       <div className="mt-8 flex flex-col items-start justify-between gap-8 md:flex-row">

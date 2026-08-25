@@ -11,6 +11,25 @@ import RoomAmenities from '@/components/room/RoomAmenities'
 import BookingSidebar from '@/components/room/BookingSidebar'
 import BackButton from '@/components/ui/BackButton'
 
+function DetailSkeleton() {
+  return (
+    <div className="mx-auto max-w-5xl animate-pulse px-4 py-6 sm:px-6">
+      <div className="mb-4 h-4 w-48 rounded bg-gray-200" />
+      <div className="h-64 rounded-3xl bg-gray-200 sm:h-96" />
+      <div className="mt-8 h-8 w-2/3 rounded bg-gray-200" />
+      <div className="mt-4 flex gap-3">
+        <div className="h-7 w-28 rounded-full bg-gray-100" />
+        <div className="h-7 w-28 rounded-full bg-gray-100" />
+      </div>
+      <div className="mt-8 space-y-2">
+        <div className="h-4 w-full rounded bg-gray-100" />
+        <div className="h-4 w-5/6 rounded bg-gray-100" />
+        <div className="h-4 w-2/3 rounded bg-gray-100" />
+      </div>
+    </div>
+  )
+}
+
 export default function RoomDetail() {
   const { id } = useParams()
   const { data: rooms = [], isLoading } = useQuery({
@@ -18,7 +37,7 @@ export default function RoomDetail() {
     queryFn: fetchRooms,
   })
 
-  if (isLoading) return <div className="p-8 text-center">Chargement...</div>
+  if (isLoading) return <DetailSkeleton />
 
   const room = rooms.find((r: Room) => r.id === id) ?? rooms[0]
 

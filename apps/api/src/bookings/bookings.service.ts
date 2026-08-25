@@ -132,6 +132,7 @@ export class BookingsService {
       orderBy: { createdAt: 'desc' },
       include: {
         review: true,
+        tenant: true,
       },
     });
   }

@@ -20,13 +20,13 @@ export default function BookingWidget({ className = '' }) {
   const router = useRouter()
   const pathname = usePathname()
   
-  const { arrival, departure, guests, itemType, setSearchCriteria } = useBookingStore()
+  const { arrival, departure, guests, setSearchCriteria } = useBookingStore()
   
   // Si on est sur /voitures, on force l'onglet voiture, sinon hôtel par défaut.
   const isCarPage = pathname.includes('/voitures')
   const defaultTab = isCarPage ? 'car' : 'room'
   
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       arrival,
@@ -35,7 +35,11 @@ export default function BookingWidget({ className = '' }) {
     }
   })
 
-  const onSubmit = (data: any) => {
+  // Empêche la sélection de dates passées / d'un départ avant l'arrivée
+  const today = new Date().toISOString().split('T')[0]
+  const arrivalValue = watch('arrival')
+
+  const onSubmit = (data: z.infer<typeof bookingSchema>) => {
     setSearchCriteria(data.arrival, data.departure, data.guests, defaultTab)
     if (defaultTab === 'car') {
       router.push('/voitures')
@@ -79,6 +83,7 @@ export default function BookingWidget({ className = '' }) {
           <input
             id="arrival-date"
             type="date"
+            min={today}
             className="w-full bg-transparent text-sm font-medium outline-none"
             {...register('arrival')}
           />
@@ -95,6 +100,7 @@ export default function BookingWidget({ className = '' }) {
           <input
             id="departure-date"
             type="date"
+            min={arrivalValue || today}
             className="w-full bg-transparent text-sm font-medium outline-none"
             {...register('departure')}
           />
@@ -124,9 +130,9 @@ export default function BookingWidget({ className = '' }) {
 
       <button
         type="submit"
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-secondary px-6 py-3 font-bold text-white transition-colors hover:bg-secondary-dark sm:mt-0 sm:w-auto"
+        className="group mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-secondary px-6 py-3 font-bold text-white transition-all hover:bg-secondary-dark active:scale-95 sm:mt-0 sm:w-auto"
       >
-        Rechercher <ArrowRight className="size-4" />
+        Rechercher <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
       </button>
       </form>
     </div>
