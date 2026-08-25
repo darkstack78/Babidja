@@ -1,0 +1,306 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  TENANT_ADMIN
+  TENANT_EMPLOYEE
+  SUPER_ADMIN
+}
+
+enum TenantType {
+  HOTEL
+  CAR_RENTAL
+}
+
+enum ResourceType {
+  ROOM
+  VEHICLE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  MTN
+  ORANGE
+  MOOV
+  WAVE
+  CARD
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BOOKED
+  BLOCKED
+}
+
+// BACK-07 : Enum pour le statut de récompense de parrainage
+enum ReferralRewardStatus {
+  PENDING
+  CREDITED
+  CANCELLED
+}
+
+model User {
+  id            String           @id @default(uuid())
+  phone         String?          @unique
+  email         String?          @unique
+  googleId      String?          @unique
+  passwordHash  String?
+  refreshTokenHash String?
+  // Optionnels avec défaut : un compte créé via OTP téléphone n'a pas de nom au départ,
+  // renseigné ensuite via PATCH /users/me.
+  firstName     String           @default("")
+  lastName      String           @default("")
+  avatarUrl     String?
+  walletBalance Decimal          @default(0)
+  referralCode  String           @unique
+  referredById  String?
+  fcmToken      String?
+  role          UserRole         @default(CUSTOMER)
+  isActive      Boolean          @default(true)
+  // Prouvé soit par un lien de vérification (inscription email), soit directement
+  // par Google OAuth (voir AuthService.validateGoogleUser) — sert à décider si un
+  // compte peut être lié en confiance à une connexion Google future.
+  isEmailVerified Boolean        @default(false)
+  createdAt     DateTime         @default(now())
+  bookings      Booking[]
+  employeeOf    TenantEmployee[]
+  emailVerifications EmailVerification[]
+  // BACK-06 : Relations FK avec Referral pour l'int\u00e9grit\u00e9 r\u00e9f\u00e9rentielle
+  referralsMade     Referral[]   @relation("ReferrerReferrals")
+  referralReceived  Referral?    @relation("ReferredReferral")
+  savedPaymentMethods SavedPaymentMethod[]
+}
+
+// R\u00e9f\u00e9rence \u00e0 un moyen de paiement (num\u00e9ro mobile money tokenis\u00e9 c\u00f4t\u00e9 CinetPay, ou
+// carte) pour un r\u00e9-usage rapide lors d'une prochaine r\u00e9servation. Jamais de PAN/CVV
+// en clair : `tokenizedRef` est la r\u00e9f\u00e9rence opaque renvoy\u00e9e par le provider.
+model SavedPaymentMethod {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider     PaymentMethod
+  tokenizedRef String
+  label        String?
+  createdAt    DateTime      @default(now())
+
+  @@index([userId])
+}
+
+model Tenant {
+  id              String           @id @default(uuid())
+  name            String
+  type            TenantType
+  description     String?
+  address         String
+  city            String
+  lat             Float?
+  lng             Float?
+  coverImageUrl   String?
+  images          String[]
+  isActive        Boolean          @default(true)
+  isPlatformOwned Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  rooms           Room[]
+  vehicles        Vehicle[]
+  employees       TenantEmployee[]
+  bookings        Booking[]
+}
+
+model TenantEmployee {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  role        UserRole
+  permissions String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String
+  description String?
+  maxGuests   Int
+  basePrice   Decimal
+  images      String[]
+  amenities   String[]
+  isActive    Boolean  @default(true)
+  // Détail affiché côté vitrine publique (capacité adulte/enfant séparée, surface,
+  // "kind" pour les variantes visuelles type piscine/suite) — pas dans le document
+  // technique d'origine, ajouté pour préserver la richesse déjà présente côté frontend.
+  capacityAdults   Int    @default(1)
+  capacityChildren Int    @default(0)
+  sizeSqm          Int?
+  kind             String @default("room")
+
+  @@index([tenantId])
+}
+
+model Vehicle {
+  id           String   @id @default(uuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  brand        String
+  model        String
+  description  String?
+  category     String
+  seats        Int
+  transmission String
+  hasAC        Boolean  @default(true)
+  pricePerDay  Decimal
+  images       String[]
+  isActive     Boolean  @default(true)
+
+  @@index([tenantId])
+}
+
+model Availability {
+  id           String              @id @default(uuid())
+  resourceType ResourceType
+  resourceId   String
+  date         DateTime
+  status       AvailabilityStatus  @default(AVAILABLE)
+  customPrice  Decimal?
+
+  @@unique([resourceType, resourceId, date])
+  @@index([resourceType, resourceId, date])
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  bookingRef      String        @unique
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  resourceType    ResourceType
+  resourceId      String
+  startDate       DateTime
+  endDate         DateTime
+  totalAmount     Decimal
+  depositAmount   Decimal
+  remainingAmount Decimal
+  status          BookingStatus @default(PENDING)
+  options         Json?
+  createdAt       DateTime      @default(now())
+  payments        Payment[]
+  messages        Message[]
+  review          Review?
+
+  @@index([tenantId])
+  @@index([userId])
+  // BACK-05 : Index sur resourceId (requêtes de disponibilité fréquentes) et status (dashboards)
+  @@index([resourceId])
+  @@index([status])
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  bookingId    String
+  booking      Booking       @relation(fields: [bookingId], references: [id])
+  userId       String
+  provider     String        @default("CINETPAY")
+  providerTxId String?       @unique
+  method       PaymentMethod
+  amount       Decimal
+  status       PaymentStatus @default(PENDING)
+  metadata     Json?
+  createdAt    DateTime      @default(now())
+
+  @@index([bookingId])
+}
+
+model OTPVerification {
+  id           String    @id @default(uuid())
+  phone        String
+  codeHash     String
+  expiresAt    DateTime
+  used         Boolean   @default(false)
+  attempts     Int       @default(0)
+  // Fixé à 3 tentatives ratées : bloque la vérification 15 min (section 4.1 du document technique).
+  blockedUntil DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+// BACK-06 + BACK-07 : FK sur Referral + enum pour rewardStatus
+model Referral {
+  id           String               @id @default(uuid())
+  referrerId   String
+  referrer     User                 @relation("ReferrerReferrals", fields: [referrerId], references: [id])
+  referredId   String               @unique
+  referred     User                 @relation("ReferredReferral", fields: [referredId], references: [id])
+  rewardAmount Decimal
+  rewardStatus ReferralRewardStatus @default(PENDING)
+  createdAt    DateTime             @default(now())
+
+  @@index([referrerId])
+}
+
+model Message {
+  id         String    @id @default(uuid())
+  bookingId  String
+  booking    Booking   @relation(fields: [bookingId], references: [id])
+  senderId   String
+  senderType String
+  content    String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([bookingId])
+  // BACK-05 : Index sur senderId pour les requ\u00eates de messagerie
+  @@index([senderId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  userId    String
+  tenantId  String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tokenHash String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

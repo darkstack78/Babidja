@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: babydja
+      POSTGRES_PASSWORD: babydja
+      POSTGRES_DB: babydja
+    ports:
+      - "5432:5432"
+    volumes:
+      - babydja_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - babydja_redis_data:/data
+
+volumes:
+  babydja_postgres_data:
+  babydja_redis_data:

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#EAF5EC"/>
+  <text x="14" y="47" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#F2871E">B</text>
+  <g transform="translate(38 10)">
+    <path d="M8 14 C8 14 10 30 8 42" stroke="#1A7A4C" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M8 14 C2 8 -4 8 -6 12 C0 12 4 14 8 14 Z" fill="#1A7A4C"/>
+    <path d="M8 14 C14 8 20 8 22 12 C16 12 12 14 8 14 Z" fill="#1A7A4C"/>
+    <path d="M8 14 C6 6 8 2 12 0 C10 6 10 10 8 14 Z" fill="#1A7A4C"/>
+  </g>
+</svg>
