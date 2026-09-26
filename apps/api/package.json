@@ -37,7 +37,7 @@
     "@nestjs/swagger": "^8.1.0",
     "@nestjs/throttler": "^6.2.1",
     "@nestjs/websockets": "^10.4.22",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.10.0",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.34.1",
